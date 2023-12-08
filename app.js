@@ -1,18 +1,14 @@
 import express from "express";
-import https from "https";
 import http from "http";
 import { Server } from "socket.io";
 import path from "path";
 import cors from "cors";
 import bodyParser from 'body-parser';
-import colors from 'colors';
-import {errorhandler} from './middleWare/errorMiddleWare.js';
 import cookieParser from 'cookie-parser';
 import fileUpload from 'express-fileupload';
 import serveStatic from 'serve-static';
 import fs from "fs";
 
-import uuid from 'node-uuid';
 import _ from 'lodash';
 import socketConnectionManager from "./socket.js";
 import { connectMongoDB } from "./db/connecton.js";
@@ -22,13 +18,6 @@ dotenv.config();
 
 // ----------------------------------------------
 // mongo db for chat room
-
-import Room from './models/roomModels.js';
-import Message from './models/messageModels.js';
-
-var admins = {};
-var users = {};
-
 //port declaration................................
 
 const PORT = process.env.PORT || 5000;
