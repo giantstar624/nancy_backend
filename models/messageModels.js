@@ -14,6 +14,9 @@ const messageSchema = mongoose.Schema(
             type: Boolean,
             default: true,
         },
+        order: {
+            type: Number,
+        },
         messageList: [
             {
                 from: {

@@ -1,3 +1,4 @@
+import mongoose, { Mongoose, mongo } from "mongoose";
 import Message from "../../models/messageModels.js";
 import User from "../../models/userModels.js";
 
@@ -30,22 +31,39 @@ export const handleMessage = async function (payload, callback) {
     let newMessageId;
     try {
         const user = await User.findById(payload.from);
-        if(user.status!="active") {
+        if (user.status != "active") {
             return callback({ error: "User blocked!" });
         }
 
-        const userData = await Message.findOne({user:payload.to});
-        if(userData) {
+        const userData = await Message.findOne({ user: payload.to });
+        if (userData) {
             let length = userData.messageList.push(newMessage);
+            // console.log(payload.from, payload.to);
             userData.isnew = payload.from == payload.to ? true : false;
+            if (userData.isnew) {
+                Message.find({ order: { $lt: userData.order } })
+                    .then((messages) => messages.forEach((val) => {
+                        val.order = val.order + 1;
+                        val.save();
+                    }));
+                userData.order = 0;
+                console.log("order change", userData);
+            }
             await userData.save();
-            newMessageId = userData.messageList[length-1]._id;
+            newMessageId = userData.messageList[length - 1]._id;
         } else {
+            if (payload.from == payload.to)
+                Message.find({}).then((messages) => messages.forEach((val) => {
+                    console.log("order here", val);
+                    val.order = val.order + 1;
+                    val.save();
+                }));
             let messageList = [newMessage];
             newHistory = await Message.create({
                 user: payload.to,
                 messageList,
-                isnew: payload.from == payload.to ? true : false
+                isnew: payload.from == payload.to ? true : false,
+                order: 0
             });
             newUserData = await User.findById(payload.to).select('-password -role -verify');
             console.log("----------New User Data------------");
@@ -53,28 +71,31 @@ export const handleMessage = async function (payload, callback) {
             await newHistory.save();
             newMessageId = newHistory.messageList[0]._id;
         }
+        // if(!userData || userData.isnew) {
+        //     Message.find({order:{$gte:{}}});
+        // }
 
     } catch (error) {
         console.info(error);
         return callback({ error: "Database error!" });
     }
 
-    callback({id: newMessageId});
+    callback({ id: newMessageId });
 
     let receivers = [];
 
     let userSocket = onlineUsers.get(payload.to);
-    if(userSocket) {
+    if (userSocket) {
         receivers.push(userSocket);
     }
-    
+
     for (var entry of onlineSupports.entries()) {
         var key = entry[0], value = entry[1];
         receivers.push(value);
     }
 
-    if(receivers.length > 0) {
-        for(let item of receivers) {
+    if (receivers.length > 0) {
+        for (let item of receivers) {
             socket.to(item).emit("message:created", {
                 ...newMessage,
                 _id: newMessageId,
@@ -93,24 +114,26 @@ export const handleLookMessage = async function (payload, callback) {
         roomId
     } = payload;
 
-    const userData = await Message.findOne({user:roomId});
+    const userData = await Message.findOne({ user: roomId });
 
-    if(userData) {
-        await Message.updateOne({ user:roomId }, { isnew: false });
+    if (userData) {
+        await Message.updateOne({ user: roomId }, { isnew: false });
 
-        callback({ data: {
-            roomId: roomId,
-        } });
+        callback({
+            data: {
+                roomId: roomId,
+            }
+        });
 
         let receivers = [];
-        
+
         for (var entry of onlineSupports.entries()) {
             var key = entry[0], value = entry[1];
             receivers.push(value);
         }
 
-        if(receivers.length > 0) {
-            for(let item of receivers) {
+        if (receivers.length > 0) {
+            for (let item of receivers) {
                 console.log("Look: send to receiver " + item);
                 socket.to(item).emit("message:looked", {
                     roomId
@@ -149,11 +172,11 @@ export const loadMessagesHandler = async function (props, callback) {
         // console.log("read message = ", chatId, userId);
 
         const user = await User.findById(userId);
-        
+
         let newChatId = chatId;
         let newUserId = userId;
 
-        if(user.permission == "Support") {
+        if (user.permission == "Support") {
             newUserId = process.env.SUPPORT_ID;
         } else {
             newChatId = process.env.SUPPORT_ID;
@@ -166,7 +189,7 @@ export const loadMessagesHandler = async function (props, callback) {
         // console.log(messages);
 
         const constructedMessages = messages.map((message) => {
-            
+
             return {
                 senderName: message.sender.name,
                 message: message.message,
