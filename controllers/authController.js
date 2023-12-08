@@ -1,5 +1,3 @@
-
-
 import jwt from "jsonwebtoken";
 import Validator from 'validator';
 import bcrypt from 'bcryptjs';
