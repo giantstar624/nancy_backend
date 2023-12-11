@@ -196,7 +196,7 @@ export const loadMessagesHandler = async function (props, callback) {
                 party:
                     newUserId === message.sender._id.toString()
                         ? "sender"
-                        : "recipient",
+                        : "receiver",
                 type: message.type,
                 date: message.date,
             };

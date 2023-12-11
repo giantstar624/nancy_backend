@@ -30,6 +30,7 @@ router.delete('/review', authSupport, AdminController.deleteReview);
 router.get('/promo', authUser, AdminController.getPromos);
 router.put('/promo', authSupport, AdminController.actionPromo);
 router.post('/promo', authSupport, AdminController.createPromo);
+router.post('/promo/tag', authSupport, AdminController.setPromoTag);
 router.delete('/promo', authSupport, AdminController.deletePromo);
 
 router.get('/banner', AdminController.getBanners);

@@ -11,18 +11,18 @@ import Admin from '../models/adminModels.js';
 import Maq from '../models/MaqModel.js';
 
 const AdminController = {
-    
+
     getCustomers: async (req, res) => {
         let { page, row, search } = req.query;
         try {
-            let results = await User.find({ $or :[{name: {$regex: search}}, {email: {$regex: search}}], role:0 }).sort({ createdAt: -1 }).skip(parseInt(page) * parseInt(row)).limit(parseInt(row));
-            let total = await User.find({ $or :[{name: {$regex: search}}, {email: {$regex: search}}], role:0 }).countDocuments();
+            let results = await User.find({ $or: [{ name: { $regex: search } }, { email: { $regex: search } }], role: 0 }).sort({ createdAt: -1 }).skip(parseInt(page) * parseInt(row)).limit(parseInt(row));
+            let total = await User.find({ $or: [{ name: { $regex: search } }, { email: { $regex: search } }], role: 0 }).countDocuments();
             res.status(200).json({ success: true, users: results, total });
         } catch (error) {
             console.log(error);
         }
     },
-    
+
     getPosts: async (req, res) => {
         let { page, row } = req.query;
         try {
@@ -94,7 +94,8 @@ const AdminController = {
             user: req.user.id,
             status: 'hide',
             content: req.body.content,
-            image: filename
+            image: filename,
+            showTag: false
         });
 
         promo.save();
@@ -110,6 +111,14 @@ const AdminController = {
     actionPromo: async (req, res) => {
         let status = req.body.tmp;
         let results = await Promo.updateOne({ _id: req.body.id }, { status }).exec();
+
+        if (results.modifiedCount > 0) {
+            res.status(200).json({ success: true })
+        } else res.status(200).json({ success: false })
+    },
+    setPromoTag: async (req, res) => {
+        let showTag = req.body.tmp;
+        let results = await Promo.updateOne({ _id: req.body.id }, { showTag }).exec();
 
         if (results.modifiedCount > 0) {
             res.status(200).json({ success: true })
@@ -131,7 +140,7 @@ const AdminController = {
         await User.updateOne({ _id: req.body.id }, { status: "active" });
         res.status(200).json({ success: true });
     },
-    
+
     deleteUser: async (req, res) => {
         console.log("delete user...");
         await User.deleteOne({ _id: req.body.id });
@@ -142,7 +151,7 @@ const AdminController = {
         console.log("add chat user...");
         const chatUser = await Message.findOne({ user: req.body.id });
         let newMessage;
-        if(!chatUser) {
+        if (!chatUser) {
             newMessage = await Message.create({
                 user: req.body.id,
                 messageList: []
@@ -160,8 +169,8 @@ const AdminController = {
     getSupports: async (req, res) => {
         let { page, row } = req.query;
         try {
-            let results = await User.find({role: 2}).sort({ createdAt: -1 }).skip(parseInt(page) * parseInt(row)).limit(parseInt(row));
-            let total = await User.find({role: 2}).countDocuments();
+            let results = await User.find({ role: 2 }).sort({ createdAt: -1 }).skip(parseInt(page) * parseInt(row)).limit(parseInt(row));
+            let total = await User.find({ role: 2 }).countDocuments();
             res.status(200).json({ success: true, users: results, total });
         } catch (error) {
             console.log(error);
@@ -177,7 +186,7 @@ const AdminController = {
         console.log("register support...");
         const { email, password, name } = req.body;
 
-        if(!email || !password || !name) {
+        if (!email || !password || !name) {
             console.error("Please fill all fields");
             return res.status(200).json({ msg: 'Incorrect form data!', success: false });
         }
@@ -191,7 +200,7 @@ const AdminController = {
             return res.status(200).json({ msg: 'Password must be at least 6 letters and max 30 letters!', success: false });
         }
 
-        if(name.length == 0) {
+        if (name.length == 0) {
             console.error("Please fill all fields");
             return res.status(200).json({ msg: 'Please insert name!', success: false });
         }
@@ -229,7 +238,7 @@ const AdminController = {
     getBanners: async (req, res) => {
         try {
             let results = await Admin.find();
-            if(!results) results = [];
+            if (!results) results = [];
 
             res.status(200).json({ success: true, banners: results });
         } catch (error) {
@@ -249,10 +258,10 @@ const AdminController = {
             const __dirname = path.resolve();
             file.mv(path.join(__dirname, 'public/banner/' + filename));
 
-            let results = await Admin.updateOne({ _id: req.body.id }, { url:filename }).exec();
+            let results = await Admin.updateOne({ _id: req.body.id }, { url: filename }).exec();
 
             if (results.modifiedCount > 0) {
-                res.status(200).json({ success: true, url:filename, id:id })
+                res.status(200).json({ success: true, url: filename, id: id })
             } else res.status(200).json({ success: false })
 
         } catch (error) {
@@ -262,7 +271,7 @@ const AdminController = {
 
     createBanner: async (req, res) => {
         const { file } = req.files;
-        
+
         const ext = file.name.substring(file.name.length - 4, file.name.length);
         const filename = req.user.id + new Date().getTime() + ext;
         if (!file) return res.sendStatus(400);
@@ -279,7 +288,7 @@ const AdminController = {
     },
 
     deleteBanner: async (req, res) => {
-        
+
         await Admin.deleteOne({ _id: req.body.id });
         res.status(200).json({ success: true });
     },
@@ -294,20 +303,20 @@ const AdminController = {
     },
 
     changeMaqText: async (req, res) => {
-        
-        const {text, id} = req.body;
 
-        const checkMaq = Maq.findOne({_id:id});
+        const { text, id } = req.body;
+
+        const checkMaq = Maq.findOne({ _id: id });
 
         console.log(id);
         console.log(checkMaq);
 
         let maq = null;
-        if(!checkMaq || id == undefined) {
+        if (!checkMaq || id == undefined) {
             maq = new Maq({
                 text: text
             });
-    
+
             maq.save();
         } else {
             await Maq.updateOne({ _id: id }, { text });
@@ -316,8 +325,8 @@ const AdminController = {
                 text: text,
             }
         }
-        
-        res.status(200).json({ success: true, maq:maq });
+
+        res.status(200).json({ success: true, maq: maq });
     },
 
 }

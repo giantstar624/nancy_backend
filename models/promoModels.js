@@ -13,7 +13,8 @@ const promoSchema = mongoose.Schema(
             type: String, required: true
         },
         status: { type: String, required: true },
-        image: { type: String }
+        image: { type: String },
+        showTag: { type: Boolean, required: true }
     },
     {
         timestamps: true
