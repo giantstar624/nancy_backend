@@ -36,6 +36,7 @@ import reviewRouter from './routes/reviewRoutes.js';
 import promoRouter from './routes/promoRoutes.js';
 import chatRouter from './routes/chatRoutes.js';
 import gameRouter from './routes/gameRoutes.js';
+import fbRouter from './routes/fbRoutes.js';
 
 //middleware function calling .....................
 const app = express();
@@ -70,6 +71,7 @@ app.use(`${base_url}review`, reviewRouter);
 app.use(`${base_url}chat`, chatRouter);
 app.use(`${base_url}user`, usersRouter);
 app.use(`${base_url}game`, gameRouter);
+app.use(`${base_url}webhook`, fbRouter);
 
 const privateKey = fs.readFileSync('./cert/117225.key');
 const certificate = fs.readFileSync('./cert/117225.crt');
@@ -77,7 +79,7 @@ const certificate = fs.readFileSync('./cert/117225.crt');
 const credentials = {
   key: privateKey,
   cert: certificate,
-//   ca: ca
+  //   ca: ca
 }
 
 // HTTP SERVER
