@@ -40,15 +40,15 @@ export const handleMessage = async function (payload, callback) {
             let length = userData.messageList.push(newMessage);
             // console.log(payload.from, payload.to);
             userData.isnew = payload.from == payload.to ? true : false;
-            if (userData.isnew) {
-                Message.find({ order: { $lt: userData.order } })
-                    .then((messages) => messages.forEach((val) => {
-                        val.order = val.order + 1;
-                        val.save();
-                    }));
-                userData.order = 0;
-                console.log("order change", userData);
-            }
+            // if (userData.isnew) {
+            Message.find({ order: { $lt: userData.order } })
+                .then((messages) => messages.forEach((val) => {
+                    val.order = val.order + 1;
+                    val.save();
+                }));
+            userData.order = 0;
+            console.log("order change", userData);
+            // }
             await userData.save();
             newMessageId = userData.messageList[length - 1]._id;
         } else {
