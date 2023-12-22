@@ -9,7 +9,7 @@ In .env file
 
 - DBCONNECTION : MongoDB url (default: localhost:27017/dbname)
 - PORT : Back-end server port
-- BASE_URL : api base url
+- BASE_URL : api base url (ex : /api/v1)
 - FRONTENDURL : Site url
 
 ## License
